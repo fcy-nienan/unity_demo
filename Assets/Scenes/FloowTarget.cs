@@ -63,4 +63,7 @@ public class FloowTarget : MonoBehaviour
         }
         offsetPosition = transform.position - player.position;
     }
+
+    
+    
 }

@@ -19,7 +19,11 @@ public class character_mouse_listener : MonoBehaviour
     }
 
 
-    public float speed;
+    private float normal_speed = 5f;
+    private float normal_rotation_speed = 200.0f;
+    
+    public float speed = 5f;
+    float rotationSpeed = 200.0f;  //旋转速度
 
     private int UP = 0;
 
@@ -35,61 +39,25 @@ public class character_mouse_listener : MonoBehaviour
 
     private Animator animator;
 
+    private Dictionary<string,AnimationClip> animation_map = new Dictionary<string, AnimationClip>();
+
     // Start is called before the first frame update
     void Start()
     {
         // GetComponent<Renderer>().material.color = Color.red;
         animator = this.GetComponent<Animator>();
-        speed = 5f;
         Debug.Log("start");
+        
+        AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+        foreach (var animationClip in clips)
+        {
+            animation_map.Add(animationClip.name,animationClip);
+        }
+        
     }
-
-
-    void setState(int currState)
+    void battle()
     {
-        Vector3 transformValue = new Vector3();
-        int rotateValue = (currState - direction_state);
-        // transform.animation.Play("walk");
-        switch (currState)
-        {
-            case 0:
-                transformValue = Vector3.forward * Time.deltaTime * speed;
-                break;
-            case 1:
-                transformValue = Vector3.right * Time.deltaTime * speed;
-                break;
-            case 2:
-                transformValue = Vector3.back * Time.deltaTime * speed;
-                break;
-            case 3:
-                transformValue = Vector3.left * Time.deltaTime * speed;
-                break;
-        }
-
-        transform.Rotate(Vector3.up, rotateValue);
-        transform.Translate(transformValue, Space.World);
-        oldState = direction_state;
-        direction_state = currState;
-    }
-
-    void receive_mouse()
-    {
-        if (Input.GetKey("w"))
-        {
-            setState(UP);
-            play(State.Walk.ToString());
-        }else if (Input.GetKey("s"))
-        {
-            setState(DOWN);
-        }else if (Input.GetKey("a"))
-        {
-            setState(LEFT);
-        }
-        else if (Input.GetKey("d"))
-        {
-            setState(RIGHT);
-        }
-        else if (Input.GetKey("j"))
+        if (Input.GetKey("j"))
         {
             play(State.Attack01.ToString());
         }
@@ -105,7 +73,48 @@ public class character_mouse_listener : MonoBehaviour
     void play(string name)
     {
         animator.Play(name,0,0f);
-        // animator.SetInteger(name, 0);
+    }
+    
+    void move_and_rotation()
+    {
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            speed =10f;
+            rotationSpeed = 300f;
+        }
+        else
+        {
+            speed = 5.0f;
+            rotationSpeed = 200.0f;
+        }
+
+        if (Input.GetKeyDown("w"))
+        {
+            Debug.Log("key down w");
+            this.transform.Translate(0,0,Input.GetAxis("Vertical")* Time.deltaTime * speed);
+            animator.Play("WalkForwardBattle",0,0);
+        }
+
+        if (Input.GetKeyUp("w"))
+        {
+            Debug.Log("key up w");
+        }
+        if (Input.GetKey("w"))
+        {
+            // this.transform.Translate(0,0,Input.GetAxis("Vertical")* Time.deltaTime * speed);
+            // animator.SetBool("to_walk",true);
+            // animator.Play("WalkForwardBattle",0,0);
+        }else if (Input.GetKey("s"))
+        {
+            this.transform.Translate(0,0,(Input.GetAxis("Vertical")* Time.deltaTime * speed));
+        }else if (Input.GetKey("a"))
+        {
+            this.transform.Rotate(0,Input.GetAxis("Horizontal") * Time.deltaTime * rotationSpeed,0);   
+        }else if (Input.GetKey("d"))
+        {
+            this.transform.Rotate(0,Input.GetAxis("Horizontal")  * Time.deltaTime * rotationSpeed,0);
+        }
+        
     }
 
 
@@ -113,7 +122,9 @@ public class character_mouse_listener : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        receive_mouse();
+        // receive_mouse();
+        move_and_rotation();
+        battle();
         if (Input.GetKey(KeyCode.Escape))
         {
             UnityEditor.EditorApplication.isPlaying = false;
